@@ -1,3 +1,4 @@
+
 name: Build Signed Release APK
 
 on:
@@ -30,13 +31,17 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+          # Install required SDK packages explicitly
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       - name: Check signing password
+        shell: bash
         run: |
-          test -n "$SIGNING_PASSWORD" || {
+          if [ -z "$SIGNING_PASSWORD" ]; then
             echo "SIGNING_PASSWORD secret is missing"
             exit 1
-          }
+          fi
 
       - name: Prepare web files
         run: |
@@ -91,13 +96,16 @@ jobs:
           if "signingConfigs {" not in s:
               s = s.replace("    buildTypes {", signing + "\n    buildTypes {", 1)
 
-          pattern = r'(release\s*\{)'
-          match = re.search(pattern, s)
-
+          match = re.search(r'buildTypes\s*\{', s)
           if not match:
+              raise SystemExit("buildTypes block not found")
+
+          start = match.end()
+          release_match = re.search(r'\brelease\s*\{', s[start:])
+          if not release_match:
               raise SystemExit("Release build type not found")
 
-          pos = match.end()
+          pos = start + release_match.end()
           if "signingConfig signingConfigs.release" not in s:
               s = s[:pos] + "\n            signingConfig signingConfigs.release" + s[pos:]
 
@@ -112,8 +120,11 @@ jobs:
 
       - name: Verify APK
         run: |
-          test -s android/app/build/outputs/apk/release/app-release.apk
-          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/apksigner" verify android/app/build/outputs/apk/release/app-release.apk
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify "$APK"
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -121,3 +132,4 @@ jobs:
           name: Doz-Release-APK
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
+          
