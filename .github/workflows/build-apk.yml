@@ -112,16 +112,12 @@ jobs:
             -validity 10000 \
             -dname "CN=Doz, OU=Android, O=Doz, L=Unknown, ST=Unknown, C=US"
 
+      
       - name: Configure Release signing
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+          cat >> android/app/build.gradle <<'GRADLE'
 
-          p = Path("android/app/build.gradle")
-          s = p.read_text()
-
-          signing = """
+          android {
               signingConfigs {
                   release {
                       storeFile file(System.getenv("RUNNER_TEMP") + "/release.jks")
@@ -130,8 +126,15 @@ jobs:
                       keyPassword System.getenv("SIGNING_PASSWORD")
                   }
               }
-          """
 
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLE
+          
           if "signingConfigs {" not in s:
               s = s.replace("    buildTypes {", signing + "\\n    buildTypes {", 1)
 
