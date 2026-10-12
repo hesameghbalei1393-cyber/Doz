@@ -1,0 +1,123 @@
+name: Build Signed Release APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Check signing password
+        run: |
+          test -n "$SIGNING_PASSWORD" || {
+            echo "SIGNING_PASSWORD secret is missing"
+            exit 1
+          }
+
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          cp index.html manifest.json sw.js www/
+          cp icon-192.png icon-512.png www/
+
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core@7 @capacitor/android@7
+          npm install --save-dev @capacitor/cli@7
+
+      - name: Initialize Android
+        run: |
+          npx cap init Doz com.doz.app --web-dir=www
+          npx cap add android
+          npx cap sync android
+
+      - name: Generate signing key
+        run: |
+          keytool -genkeypair \
+            -keystore "$RUNNER_TEMP/release.jks" \
+            -storepass "$SIGNING_PASSWORD" \
+            -keypass "$SIGNING_PASSWORD" \
+            -alias release \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Doz, OU=Android, O=Doz, L=Unknown, ST=Unknown, C=US"
+
+      - name: Configure Release signing
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+
+          signing = """
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv("RUNNER_TEMP") + "/release.jks")
+                      storePassword System.getenv("SIGNING_PASSWORD")
+                      keyAlias "release"
+                      keyPassword System.getenv("SIGNING_PASSWORD")
+                  }
+              }
+          """
+
+          if "signingConfigs {" not in s:
+              s = s.replace("    buildTypes {", signing + "\n    buildTypes {", 1)
+
+          pattern = r'(release\s*\{)'
+          match = re.search(pattern, s)
+
+          if not match:
+              raise SystemExit("Release build type not found")
+
+          pos = match.end()
+          if "signingConfig signingConfigs.release" not in s:
+              s = s[:pos] + "\n            signingConfig signingConfigs.release" + s[pos:]
+
+          p.write_text(s)
+          PY
+
+      - name: Build Release APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Verify APK
+        run: |
+          test -s android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/apksigner" verify android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Doz-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
