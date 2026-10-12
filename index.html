@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>دوز — Eight⁸</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#ffffff; --s1:#f6f7f9; --s2:#eef0f3; --bd:#e4e7ec;
+  --tx:#1c2026; --dim:#80868f; --x:#232730; --o:#d64545; --ac:#2f6fed; --win:#eaf6ea; --winline:#34a853;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;background:var(--bg);color:var(--tx);overflow:hidden;overscroll-behavior:none;
+  font-family:system-ui,"Vazirmatn","Noto Sans Arabic",Tahoma,sans-serif;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;overflow-x:hidden;background:var(--bg);
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 18px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.screen.active{display:block}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.top b{flex:1;font-size:17px;font-weight:700}
+.ibtn{width:38px;height:38px;border-radius:50%;background:var(--s1);border:1px solid var(--bd);display:grid;place-items:center;font-size:16px;flex:none;color:var(--tx)}
+.ibtn:active{background:var(--s2)}
+
+/* ---- خانه ---- */
+.home-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 0 8px}
+.home-logo{width:88px;height:88px;border-radius:24px;background:var(--s1);border:1px solid var(--bd);display:grid;place-items:center}
+.home-hero h1{font-size:23px;margin-top:14px;font-weight:800}
+.home-hero p{color:var(--dim);font-size:13px;margin-top:5px}
+.menu{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.mcard{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:var(--s1);border:1px solid var(--bd);text-align:right}
+.mcard:active{background:var(--s2)}
+.mcard .ico{width:50px;height:50px;border-radius:15px;background:#fff;border:1px solid var(--bd);display:grid;place-items:center;font-size:23px;flex:none}
+.mcard .t{flex:1;min-width:0}
+.mcard b{display:block;font-size:15.5px}
+.mcard small{display:block;color:var(--dim);font-size:12px;margin-top:3px;line-height:1.6}
+.mcard .arr{color:var(--dim);font-size:16px;flex:none}
+.mcard.primary .ico{background:var(--ac);color:#fff;border-color:var(--ac)}
+
+/* ---- سطح سختی ---- */
+.diffcard{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:var(--s1);border:1px solid var(--bd);text-align:right;margin-bottom:12px}
+.diffcard:active{background:var(--s2)}
+.diffcard.on{border-color:var(--ac);background:#eef3ff}
+.diffcard .dot{width:12px;height:12px;border-radius:50%;background:var(--bd);flex:none}
+.diffcard.on .dot{background:var(--ac)}
+.diffcard .t{flex:1}
+.diffcard b{display:block;font-size:15px}
+.diffcard small{display:block;color:var(--dim);font-size:12px;margin-top:3px;line-height:1.7}
+
+/* ---- صفحه‌ی بازی ---- */
+.scoreRow{display:flex;gap:8px;margin:14px 0 10px}
+.scard{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:10px 8px;text-align:center}
+.scard.active{border-color:var(--ac);background:#eef3ff}
+.scard .lbl{font-size:11px;color:var(--dim);font-weight:600}
+.scard .sym{font-size:17px;font-weight:800;margin:2px 0}
+.scard .num{font-size:19px;font-weight:800}
+.status{text-align:center;color:var(--dim);font-size:13.5px;margin-bottom:14px;min-height:18px}
+.boardWrap{display:flex;justify-content:center;margin:4px 0 18px}
+.board{position:relative;width:min(84vw,340px);height:min(84vw,340px)}
+.board svg{position:absolute;inset:0;width:100%;height:100%}
+.cells{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);direction:ltr}
+.cell{display:flex}
+.cellbtn{flex:1;margin:2px}
+.controls{display:flex;gap:10px}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;
+  background:var(--ac);color:#fff;font-weight:700;font-size:14.5px}
+.btn:active{opacity:.9}
+.btn.ghost{background:var(--s1);color:var(--tx);border:1px solid var(--bd);font-weight:600}
+.sec{font-size:12.5px;color:var(--dim);font-weight:700;margin:20px 2px 8px}
+.seg{display:flex;gap:7px;flex-wrap:wrap}
+.seg button{flex:1;min-width:70px;padding:10px 6px;border-radius:12px;background:var(--s1);border:1px solid var(--bd);font-size:12.5px;color:var(--dim)}
+.seg button.on{background:var(--ac);color:#fff;font-weight:700;border-color:var(--ac)}
+.row{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);margin-bottom:9px}
+.row .t{flex:1}
+.row .t b{display:block;font-size:14px}
+.row .t small{display:block;color:var(--dim);font-size:11.5px;margin-top:2px}
+
+/* ---- درباره ما ---- */
+.about-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 6px}
+.about-logo{width:84px;height:84px;border-radius:22px;background:var(--s1);border:1px solid var(--bd);display:grid;place-items:center}
+.about-hero h3{font-size:19px;margin-top:12px;font-weight:800}
+.about-hero small{color:var(--dim);font-size:12.5px;margin-top:3px}
+.about-tx{font-size:13.5px;line-height:2;color:#444a54;padding:4px 2px 0}
+.contact{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);margin-bottom:9px;text-align:right;width:100%}
+.contact .ico{width:38px;height:38px;border-radius:12px;background:#fff;border:1px solid var(--bd);display:grid;place-items:center;color:var(--ac);flex:none;font-size:16px}
+.contact .t{flex:1;min-width:0}
+.contact b{display:block;font-size:13.5px}
+.contact small{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;direction:ltr;text-align:left}
+.credit{color:var(--dim);font-size:11.5px;line-height:1.9;text-align:center;margin-top:18px}
+
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:90;
+  background:#232730;color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .22s;max-width:88vw;text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ===================== خانه ===================== -->
+<section id="scr-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-logo">
+      <svg width="48" height="48" viewBox="0 0 100 100"><line x1="33" y1="12" x2="33" y2="88" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="67" y1="12" x2="67" y2="88" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="12" y1="33" x2="88" y2="33" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="12" y1="67" x2="88" y2="67" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="46" y1="19" x2="20" y2="46" stroke="#232730" stroke-width="7" stroke-linecap="round"/><line x1="20" y1="19" x2="46" y2="46" stroke="#232730" stroke-width="7" stroke-linecap="round"/><circle cx="77" cy="77" r="13" fill="none" stroke="#d64545" stroke-width="7"/></svg>
+    </div>
+    <h1>دوز</h1>
+    <p>یک بازی کلاسیک، دو راه برای بازی</p>
+  </div>
+  <div class="menu">
+    <button class="mcard primary" id="goFriend">
+      <span class="ico">👥</span>
+      <span class="t"><b>بازی با دوست</b><small>گوشی را دست‌به‌دست کنید</small></span>
+      <span class="arr">‹</span>
+    </button>
+    <button class="mcard" id="goBotMenu">
+      <span class="ico">🤖</span>
+      <span class="t"><b>بازی با ربات</b><small>سه سطح سختی: آسان، متوسط، سخت</small></span>
+      <span class="arr">‹</span>
+    </button>
+    <button class="mcard" id="goAbout">
+      <span class="ico">ℹ️</span>
+      <span class="t"><b>درباره ما</b><small>ارتباط با ما و تنظیمات بازی</small></span>
+      <span class="arr">‹</span>
+    </button>
+  </div>
+</section>
+
+<!-- ===================== انتخاب سطح سختی ===================== -->
+<section id="scr-difficulty" class="screen">
+  <div class="top"><button class="ibtn" id="backFromDiff">‹</button><b>سطح سختی ربات</b></div>
+  <div style="margin-top:18px">
+    <button class="diffcard" id="diffEasy" data-v="easy">
+      <span class="dot"></span>
+      <span class="t"><b>آسان</b><small>حرکت‌های تصادفی — مناسب تمرین</small></span>
+    </button>
+    <button class="diffcard" id="diffMedium" data-v="medium">
+      <span class="dot"></span>
+      <span class="t"><b>متوسط</b><small>گاهی حرفه‌ای بازی می‌کند، گاهی اشتباه</small></span>
+    </button>
+    <button class="diffcard" id="diffHard" data-v="hard">
+      <span class="dot"></span>
+      <span class="t"><b>سخت</b><small>همیشه بهترین حرکت را می‌زند — شکست‌ناپذیر</small></span>
+    </button>
+  </div>
+</section>
+
+<!-- ===================== صفحه‌ی بازی ===================== -->
+<section id="scr-game" class="screen">
+  <div class="top"><button class="ibtn" id="backHome">‹</button><b>دوز</b>
+    <button class="ibtn" id="btnAbout">i</button>
+  </div>
+
+  <div class="scoreRow">
+    <div class="scard" id="scX"><div class="lbl">بازیکن ۱</div><div class="sym" id="symX">✕</div><div class="num" id="numX">۰</div></div>
+    <div class="scard" id="scD"><div class="lbl">مساوی</div><div class="sym">—</div><div class="num" id="numD">۰</div></div>
+    <div class="scard" id="scO"><div class="lbl" id="lblO">ربات</div><div class="sym" id="symO">◯</div><div class="num" id="numO">۰</div></div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="boardWrap">
+    <div class="board" id="board">
+      <svg viewBox="0 0 300 300"><g id="gridLines" stroke="#d8dbe1" stroke-width="3" stroke-linecap="round"></g><g id="marks"></g><g id="winLine"></g></svg>
+      <div class="cells" id="cells"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btnNew">دور جدید</button>
+    <button class="btn ghost" id="btnReset">صفر کردن امتیازها</button>
+  </div>
+</section>
+
+<!-- ===================== درباره ما + تنظیمات ===================== -->
+<section id="scr-about" class="screen">
+  <div class="top"><button class="ibtn" id="backFromAbout">‹</button><b>درباره ما</b></div>
+  <div class="about-hero">
+    <div class="about-logo">
+      <svg width="46" height="46" viewBox="0 0 100 100"><line x1="33" y1="12" x2="33" y2="88" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="67" y1="12" x2="67" y2="88" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="12" y1="33" x2="88" y2="33" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="12" y1="67" x2="88" y2="67" stroke="#d8dbe1" stroke-width="6" stroke-linecap="round"/><line x1="46" y1="19" x2="20" y2="46" stroke="#232730" stroke-width="7" stroke-linecap="round"/><line x1="20" y1="19" x2="46" y2="46" stroke="#232730" stroke-width="7" stroke-linecap="round"/><circle cx="77" cy="77" r="13" fill="none" stroke="#d64545" stroke-width="7"/></svg>
+    </div>
+    <h3>دوز</h3>
+    <small>نسخه ۱.۱.۰</small>
+  </div>
+  <p class="about-tx">یک بازی دوز کلاسیک و ساده — با ربات بازی کن یا گوشی را به دوستت بده. ساخته‌شده توسط استودیو Eight⁸.</p>
+
+  <div class="sec">تنظیمات بازی</div>
+  <div class="row"><div class="t"><b>شروع‌کننده‌ی هر دور</b><small>چه کسی اول حرکت کند</small></div></div>
+  <div class="seg" id="startSeg" style="margin-bottom:12px">
+    <button data-v="x">همیشه ✕</button>
+    <button data-v="o">همیشه ◯</button>
+    <button data-v="alt">به نوبت</button>
+    <button data-v="rand">تصادفی</button>
+  </div>
+  <div class="row"><div class="t"><b>لرزش گوشی</b><small>هنگام هر حرکت و پایان بازی</small></div><button class="ibtn" id="toggleHaptic" style="width:46px;border-radius:999px"></button></div>
+  <div class="row"><div class="t"><b>صدا</b><small>پخش صدای کوتاه هنگام حرکت و برد</small></div><button class="ibtn" id="toggleSound" style="width:46px;border-radius:999px"></button></div>
+  <button class="btn ghost" id="btnResetScoreFromAbout" style="margin-top:4px">صفر کردن امتیازها</button>
+  <button class="btn ghost" id="btnResetSettings" style="margin-top:8px">بازگرداندن تنظیمات پیش‌فرض</button>
+
+  <div class="sec">ارتباط با ما</div>
+  <button class="contact" id="aboutRubika"><span class="ico">➤</span><span class="t"><b>کانال روبیکا</b><small>@Studio_Eight8</small></span></button>
+  <button class="contact" id="aboutId"><span class="ico">@</span><span class="t"><b>ارتباط با توسعه‌دهنده</b><small>@Hesam23799</small></span><span class="ico" style="background:none;border:none">⧉</span></button>
+  <button class="contact" id="aboutMail"><span class="ico">✉</span><span class="t"><b>ارسال بازخورد</b><small>hesameghbalei1391@gmail.com</small></span></button>
+
+  <div class="sec">حریم خصوصی</div>
+  <p class="about-tx" style="font-size:12.5px;color:var(--dim)">این بازی هیچ اطلاعات شخصی‌ای جمع‌آوری نمی‌کند. امتیازها و تنظیمات فقط روی خودِ گوشی ذخیره می‌شوند و نیازی به اینترنت نیست.</p>
+  <p class="credit">© ۲۰۲۶ Eight⁸ Studio</p>
+</section>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let toastT=null;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1700); }
+function fa(n){ return Number(n).toLocaleString('fa-IR'); }
+function vibrate(ms){ if(S.haptic && navigator.vibrate) navigator.vibrate(ms||10); }
+
+/* صدای ساده بدون فایل، با Web Audio */
+let actx=null;
+function beep(freq, dur){
+  if(!S.sound) return;
+  try{
+    if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.frequency.value=freq; o.type='sine';
+    g.gain.value=0.08;
+    o.connect(g); g.connect(actx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+    o.stop(actx.currentTime + dur);
+  }catch(e){}
+}
+
+/* =====================================================================
+   تنظیمات (ماندگار)
+   ===================================================================== */
+const DEFAULTS={ mode:'bot', diff:'medium', starter:'alt', haptic:true, sound:true };
+const store={
+  get(k,d){ try{ const v=localStorage.getItem('ttt_'+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('ttt_'+k, JSON.stringify(v)); }catch(e){} }
+};
+let S = Object.assign({}, DEFAULTS, store.get('settings',{}));
+function saveS(){ store.set('settings', S); }
+let SCORE = Object.assign({x:0,o:0,d:0}, store.get('score',{x:0,o:0,d:0}));
+function saveScore(){ store.set('score', SCORE); }
+
+/* =====================================================================
+   منطق دوز (مینیمکس کامل برای ربات سخت)
+   ===================================================================== */
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function winnerInfo(b){
+  for(const line of LINES){ const [a,c,d]=line; if(b[a] && b[a]===b[c] && b[a]===b[d]) return {sym:b[a], line}; }
+  return b.includes(null) ? null : {sym:'draw', line:null};
+}
+function minimax(b, player){
+  const w=winnerInfo(b);
+  if(w){ if(w.sym==='X') return {score:1}; if(w.sym==='O') return {score:-1}; return {score:0}; }
+  const moves=[];
+  for(let i=0;i<9;i++) if(!b[i]){
+    b[i]=player;
+    const r=minimax(b, player==='X'?'O':'X');
+    moves.push({i, score:r.score});
+    b[i]=null;
+  }
+  if(player==='X') moves.sort((a,b2)=>b2.score-a.score); else moves.sort((a,b2)=>a.score-b2.score);
+  return {score:moves[0].score, move:moves[0].i};
+}
+function botPick(board, diff){
+  const empties=[...board.keys()].filter(i=>!board[i]);
+  if(diff==='easy') return empties[Math.floor(Math.random()*empties.length)];
+  if(diff==='medium'){
+    for(const i of empties){ board[i]='O'; const win=winnerInfo(board)?.sym==='O'; board[i]=null; if(win) return i; }
+    for(const i of empties){ board[i]='X'; const win=winnerInfo(board)?.sym==='X'; board[i]=null; if(win) return i; }
+    if(Math.random()<0.45) return empties[Math.floor(Math.random()*empties.length)];
+    return minimax(board.slice(),'O').move;
+  }
+  return minimax(board.slice(),'O').move;
+}
+
+/* =====================================================================
+   وضعیت بازی
+   ===================================================================== */
+let board, turn, over, roundNo=0;
+function pickStarter(){
+  if(S.starter==='x') return 'X';
+  if(S.starter==='o') return 'O';
+  if(S.starter==='rand') return Math.random()<0.5?'X':'O';
+  return roundNo%2===0 ? 'X':'O'; // alt
+}
+
+/* =====================================================================
+   رندر تخته (SVG خطوط کلاسیک + X/O رسم‌شده)
+   ===================================================================== */
+const CPOS=[[50,50],[150,50],[250,50],[50,150],[150,150],[250,150],[50,250],[150,250],[250,250]];
+function buildGrid(){
+  const g=$('gridLines'); g.innerHTML='';
+  const lines=[[100,10,100,290],[200,10,200,290],[10,100,290,100],[10,200,290,200]];
+  lines.forEach(([x1,y1,x2,y2])=>{
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    g.appendChild(l);
+  });
+}
+function markSVG(sym, cx, cy){
+  const ns='http://www.w3.org/2000/svg';
+  const g=document.createElementNS(ns,'g'); g.setAttribute('class','mark-'+sym);
+  if(sym==='X'){
+    const r=34;
+    const l1=document.createElementNS(ns,'line'); l1.setAttribute('x1',cx-r); l1.setAttribute('y1',cy-r); l1.setAttribute('x2',cx+r); l1.setAttribute('y2',cy+r);
+    const l2=document.createElementNS(ns,'line'); l2.setAttribute('x1',cx+r); l2.setAttribute('y1',cy-r); l2.setAttribute('x2',cx-r); l2.setAttribute('y2',cy+r);
+    [l1,l2].forEach(l=>{ l.setAttribute('stroke','#232730'); l.setAttribute('stroke-width','9'); l.setAttribute('stroke-linecap','round'); g.appendChild(l); });
+  } else {
+    const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',34);
+    c.setAttribute('fill','none'); c.setAttribute('stroke','#d64545'); c.setAttribute('stroke-width','9');
+    g.appendChild(c);
+  }
+  return g;
+}
+function renderBoard(){
+  const marks=$('marks'); marks.innerHTML='';
+  board.forEach((v,i)=>{ if(v){ const [cx,cy]=CPOS[i]; marks.appendChild(markSVG(v,cx,cy)); } });
+  const wl=$('winLine'); wl.innerHTML='';
+  const w=winnerInfo(board);
+  if(w && w.line){
+    const [a,,c]=w.line; const [x1,y1]=CPOS[a]; const [x2,y2]=CPOS[c];
+    const ns='http://www.w3.org/2000/svg';
+    const l=document.createElementNS(ns,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke','#34a853'); l.setAttribute('stroke-width','7'); l.setAttribute('stroke-linecap','round');
+    wl.appendChild(l);
+  }
+  const cellsEl=$('cells'); cellsEl.innerHTML='';
+  for(let i=0;i<9;i++){
+    const d=document.createElement('div'); d.className='cell';
+    const b=document.createElement('button'); b.className='cellbtn';
+    b.disabled = !!board[i] || !!over;
+    b.onclick=()=>play(i);
+    d.appendChild(b); cellsEl.appendChild(d);
+  }
+  updateScorecards();
+  const botTurn = S.mode==='bot' && turn==='O';
+  $('status').textContent = over
+    ? (over==='draw' ? 'مساوی شد!' : (over==='X'?'بازیکن ۱ (✕) برد!' : (S.mode==='bot'?'ربات (◯) برد!':'بازیکن ۲ (◯) برد!')))
+    : (botTurn ? 'نوبت ربات…' : `نوبت ${turn==='X'?'بازیکن ۱ (✕)':(S.mode==='bot'?'ربات (◯)':'بازیکن ۲ (◯)')}`);
+}
+function updateScorecards(){
+  $('numX').textContent=fa(SCORE.x); $('numO').textContent=fa(SCORE.o); $('numD').textContent=fa(SCORE.d);
+  $('lblO').textContent = S.mode==='bot' ? 'ربات' : 'بازیکن ۲';
+  $('scX').classList.toggle('active', turn==='X' && !over);
+  $('scO').classList.toggle('active', turn==='O' && !over);
+  $('scD').classList.remove('active');
+}
+
+function play(i){
+  if(over || board[i]) return;
+  board[i]=turn; vibrate(8); beep(turn==='X'?440:392, 0.08);
+  const w=winnerInfo(board);
+  if(w){
+    over = w.sym;
+    if(w.sym==='draw') SCORE.d++; else if(w.sym==='X') SCORE.x++; else SCORE.o++;
+    saveScore(); vibrate(w.sym==='draw'?[10,40,10]:30);
+    beep(w.sym==='draw'?330:660, w.sym==='draw'?0.18:0.28);
+  } else {
+    turn = turn==='X'?'O':'X';
+  }
+  renderBoard();
+  if(!over && S.mode==='bot' && turn==='O'){
+    setTimeout(()=>{ const m=botPick(board.slice(), S.diff); if(m!=null) play(m); }, 380);
+  }
+}
+function newRound(){
+  roundNo++; board=Array(9).fill(null); over=null; turn=pickStarter();
+  renderBoard();
+  if(S.mode==='bot' && turn==='O'){ setTimeout(()=>{ const m=botPick(board.slice(), S.diff); if(m!=null) play(m); }, 420); }
+}
+$('btnNew').onclick=newRound;
+function resetScores(){ SCORE={x:0,o:0,d:0}; saveScore(); renderBoard(); toast('امتیازها صفر شد'); }
+$('btnReset').onclick=resetScores;
+$('btnResetScoreFromAbout').onclick=resetScores;
+
+/* =====================================================================
+   ناوبری بین صفحه‌ها
+   ===================================================================== */
+const SCREENS=['home','difficulty','game','about'];
+let cur='home';
+function show(name){ cur=name; SCREENS.forEach(s=>$('scr-'+s).classList.toggle('active', s===name)); }
+function go(name){ if(name===cur) return; history.pushState({s:name},''); show(name); }
+history.replaceState({s:'home'},'');
+addEventListener('popstate', e=> show((e.state||{s:'home'}).s));
+
+function startFriendGame(){ S.mode='2p'; saveS(); applyDiffHighlight(); go('game'); newRound(); }
+function startBotGame(diff){ S.mode='bot'; S.diff=diff; saveS(); applyDiffHighlight(); go('game'); newRound(); }
+
+$('goFriend').onclick=startFriendGame;
+$('goBotMenu').onclick=()=>{ applyDiffHighlight(); go('difficulty'); };
+$('goAbout').onclick=()=>go('about');
+$('backFromDiff').onclick=()=>history.back();
+$('backHome').onclick=()=>history.back();
+$('btnAbout').onclick=()=>go('about');
+$('backFromAbout').onclick=()=>history.back();
+
+function applyDiffHighlight(){
+  ['easy','medium','hard'].forEach(v=>{
+    $('diff'+v[0].toUpperCase()+v.slice(1)).classList.toggle('on', S.diff===v);
+  });
+}
+$('diffEasy').onclick=()=>startBotGame('easy');
+$('diffMedium').onclick=()=>startBotGame('medium');
+$('diffHard').onclick=()=>startBotGame('hard');
+
+/* =====================================================================
+   تنظیمات داخل «درباره ما»: رابط
+   ===================================================================== */
+function seg(container, value, onChange){
+  Array.from(container.children).forEach(b=>{
+    b.classList.toggle('on', b.dataset.v===value);
+    b.onclick=()=>onChange(b.dataset.v);
+  });
+}
+function applySettingsUI(){
+  seg($('startSeg'), S.starter, v=>{ S.starter=v; saveS(); applySettingsUI(); });
+  $('toggleHaptic').textContent = S.haptic ? '✓' : '✕';
+  $('toggleHaptic').style.color = S.haptic ? '#34a853' : '#c4c8ce';
+  $('toggleSound').textContent = S.sound ? '✓' : '✕';
+  $('toggleSound').style.color = S.sound ? '#34a853' : '#c4c8ce';
+}
+$('toggleHaptic').onclick=()=>{ S.haptic=!S.haptic; saveS(); applySettingsUI(); };
+$('toggleSound').onclick=()=>{ S.sound=!S.sound; saveS(); applySettingsUI(); };
+$('btnResetSettings').onclick=()=>{
+  const keepMode=S.mode; // حالت فعلی بازی دست‌نخورده می‌ماند، فقط ترجیحات بازنشانی می‌شوند
+  S=Object.assign({}, DEFAULTS, {mode:keepMode});
+  saveS(); applySettingsUI(); applyDiffHighlight(); toast('تنظیمات به حالت پیش‌فرض برگشت');
+};
+
+/* =====================================================================
+   درباره ما: دکمه‌های تماس
+   ===================================================================== */
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){ const a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select();
+    try{ document.execCommand('copy'); }catch(_){} a.remove(); }
+  toast('کپی شد');
+}
+$('aboutRubika').onclick=()=> window.open('https://rubika.ir/Studio_Eight8','_blank','noopener');
+$('aboutId').onclick=()=> copyText('@Hesam23799');
+$('aboutMail').onclick=()=> window.open('mailto:hesameghbalei1391@gmail.com?subject=' + encodeURIComponent('بازخورد دوز'), '_blank');
+
+/* =====================================================================
+   شروع
+   ===================================================================== */
+buildGrid();
+applySettingsUI();
+applyDiffHighlight();
+
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
