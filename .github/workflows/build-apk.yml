@@ -113,27 +113,47 @@ jobs:
             -dname "CN=Doz, OU=Android, O=Doz, L=Unknown, ST=Unknown, C=US"
 
       
+      
       - name: Configure Release signing
+        shell: bash
         run: |
-          cat >> android/app/build.gradle <<'GRADLE'
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
 
-          android {
-              signingConfigs {
-                  release {
-                      storeFile file(System.getenv("RUNNER_TEMP") + "/release.jks")
-                      storePassword System.getenv("SIGNING_PASSWORD")
-                      keyAlias "release"
-                      keyPassword System.getenv("SIGNING_PASSWORD")
-                  }
-              }
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
 
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                  }
-              }
-          }
-          GRADLE
+          if "signingConfigs {" not in s:
+              raise SystemExit(
+                  "Could not find signingConfigs location. "
+                  "Please inspect android/app/build.gradle."
+              )
+
+          if "signingConfig signingConfigs.release" in s:
+              print("Release signing is already configured.")
+          else:
+              pattern = r'buildTypes\s*\{'
+              m = re.search(pattern, s)
+              if not m:
+                  raise SystemExit("Could not find buildTypes block.")
+
+              start = m.end()
+              release = re.search(r'\brelease\s*\{', s[start:])
+              if not release:
+                  raise SystemExit("Could not find release build type.")
+
+              pos = start + release.end()
+              s = (
+                  s[:pos]
+                  + '\n            signingConfig signingConfigs.release\n'
+                  + s[pos:]
+              )
+
+          p.write_text(s)
+          print("Release signing configured.")
+          PY
+          
           
           if "signingConfigs {" not in s:
               s = s.replace("    buildTypes {", signing + "\\n    buildTypes {", 1)
